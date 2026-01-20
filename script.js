@@ -341,34 +341,43 @@ async function initVideoPlayer() {
         // Show/hide placeholder based on unlocked videos
         if (unlockedVideos.length > 0) {
             placeholder.style.display = 'none';
-            document.querySelector('.carousel-container').style.display = 'block';
-            document.querySelector('.carousel-nav').style.display = 'flex';
+            track.style.display = 'flex';
+            prevBtn.style.display = 'flex';
+            nextBtn.style.display = 'flex';
         } else {
-            placeholder.style.display = 'block';
-            document.querySelector('.carousel-container').style.display = 'none';
-            document.querySelector('.carousel-nav').style.display = 'none';
+            placeholder.style.display = 'flex';
+            track.style.display = 'none';
+            prevBtn.style.display = 'none';
+            nextBtn.style.display = 'none';
         }
     }
 
     function addVideoToCarousel(src, index) {
         const card = document.createElement('div');
         card.className = 'video-card';
+        card.dataset.index = index;
         card.innerHTML = `
-            <video class="birthday-video" loop muted playsinline>
+            <video class="birthday-video" loop muted playsinline preload="metadata">
                 <source src="${src}" type="video/mp4">
             </video>
         `;
 
-        // Play on click and rotate to it
+        // Click to select and play/pause
         card.addEventListener('click', () => {
-            rotateToIndex(index);
-            const video = card.querySelector('video');
-            if (video.paused) {
-                video.play().catch(e => console.log("Play failed", e));
-                card.classList.add('playing');
+            if (carouselIndex !== index) {
+                // Navigate to this video
+                navigateToIndex(index);
             } else {
-                video.pause();
-                card.classList.remove('playing');
+                // Toggle play/pause for active video
+                const video = card.querySelector('video');
+                if (video.paused) {
+                    video.muted = false;
+                    video.play().catch(e => console.log("Play failed", e));
+                    card.classList.add('playing');
+                } else {
+                    video.pause();
+                    card.classList.remove('playing');
+                }
             }
         });
 
@@ -376,53 +385,60 @@ async function initVideoPlayer() {
     }
 
     function updateCarouselLayout() {
+        // Set the first video as active if none is active
         const cards = track.querySelectorAll('.video-card');
-        const count = cards.length;
-        if (count === 0) return;
-
-        const angleStep = 360 / count;
-        // Radius calculation based on card width (320px) to prevent overlap
-        // r = (s/2) / tan(PI/n)
-        const radius = Math.max(400, (160 / Math.tan(Math.PI / count)));
-
-        cards.forEach((card, i) => {
-            const angle = i * angleStep;
-            card.style.transform = `rotateY(${angle}deg) translateZ(${radius}px)`;
-        });
-
-        // Set radius as custom property for hover reference if needed
-        track.style.setProperty('--radius', radius + 'px');
+        if (cards.length > 0 && carouselIndex === 0) {
+            navigateToIndex(0);
+        }
     }
 
-    function rotateToIndex(index) {
+    function navigateToIndex(index) {
         const cards = track.querySelectorAll('.video-card');
         const count = cards.length;
         if (count === 0) return;
 
         carouselIndex = index;
-        const angleStep = 360 / count;
-        currentCarouselAngle = -index * angleStep;
 
-        track.style.transform = `rotateY(${currentCarouselAngle}deg)`;
-
-        // Update active class
+        // Update active class and pause all non-active videos
         cards.forEach((card, i) => {
-            if (i === index) card.classList.add('active');
-            else card.classList.remove('active');
+            const video = card.querySelector('video');
+            if (i === index) {
+                card.classList.add('active');
+                // Don't auto-play, let user click to play
+            } else {
+                card.classList.remove('active');
+                card.classList.remove('playing');
+                // Pause and mute non-active videos
+                if (video) {
+                    video.pause();
+                    video.muted = true;
+                    video.currentTime = 0;
+                }
+            }
         });
+
+        // Scroll the active card into center view
+        const activeCard = cards[index];
+        if (activeCard) {
+            activeCard.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest',
+                inline: 'center'
+            });
+        }
     }
 
     // Navigation buttons
     prevBtn.addEventListener('click', () => {
         if (unlockedVideos.length === 0) return;
         carouselIndex = (carouselIndex - 1 + unlockedVideos.length) % unlockedVideos.length;
-        rotateToIndex(carouselIndex);
+        navigateToIndex(carouselIndex);
     });
 
     nextBtn.addEventListener('click', () => {
         if (unlockedVideos.length === 0) return;
         carouselIndex = (carouselIndex + 1) % unlockedVideos.length;
-        rotateToIndex(carouselIndex);
+        navigateToIndex(carouselIndex);
     });
 
     // Support keyboard navigation
