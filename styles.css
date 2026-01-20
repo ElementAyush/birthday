@@ -1025,6 +1025,144 @@ body::before {
 }
 
 /* =====================================================
+   PASSWORD PROTECTION OVERLAY
+   ===================================================== */
+.password-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(26, 10, 16, 0.9);
+    backdrop-filter: blur(15px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 20px;
+    transition: opacity 0.6s ease;
+}
+
+.password-card {
+    background: linear-gradient(145deg, rgba(255, 107, 157, 0.25), rgba(201, 24, 74, 0.15));
+    backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 107, 157, 0.4);
+    border-radius: 30px;
+    padding: 50px 30px;
+    text-align: center;
+    max-width: 450px;
+    width: 100%;
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6), 0 0 40px rgba(255, 107, 157, 0.2);
+}
+
+.password-icon {
+    font-size: 50px;
+    margin-bottom: 20px;
+}
+
+.password-title {
+    font-family: 'Dancing Script', cursive;
+    font-size: 2.8rem;
+    color: var(--gold);
+    margin-bottom: 10px;
+}
+
+.password-subtitle {
+    font-size: 1rem;
+    color: var(--text-muted);
+    margin-bottom: 30px;
+    line-height: 1.5;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+#passwordInput {
+    padding: 15px 20px;
+    border-radius: 50px;
+    border: 2px solid rgba(255, 107, 157, 0.3);
+    background: rgba(26, 10, 16, 0.7);
+    color: white;
+    font-size: 1.1rem;
+    text-align: center;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+#passwordInput:focus {
+    border-color: var(--primary-pink);
+    box-shadow: 0 0 20px rgba(255, 107, 157, 0.3);
+}
+
+.password-btn {
+    padding: 15px 30px;
+    border-radius: 50px;
+    border: none;
+    background: var(--gradient-romantic);
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 25px rgba(255, 107, 157, 0.4);
+}
+
+.password-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(255, 107, 157, 0.6);
+}
+
+.password-error {
+    margin-top: 20px;
+    color: #ff4757;
+    font-weight: 500;
+}
+
+.shake {
+    animation: shakeAnim 0.5s cubic-bezier(.36, .07, .19, .97) both;
+}
+
+@keyframes shakeAnim {
+
+    10%,
+    90% {
+        transform: translate3d(-1px, 0, 0);
+    }
+
+    20%,
+    80% {
+        transform: translate3d(2px, 0, 0);
+    }
+
+    30%,
+    50%,
+    70% {
+        transform: translate3d(-4px, 0, 0);
+    }
+
+    40%,
+    60% {
+        transform: translate3d(4px, 0, 0);
+    }
+}
+
+/* BLUR EFFECTS FOR MAIN CONTENT */
+.main-content-wrapper {
+    transition: filter 1s ease;
+}
+
+.main-content-wrapper.blurred {
+    filter: blur(25px);
+    pointer-events: none;
+    user-select: none;
+}
+
+/* =====================================================
    CUSTOM CURSOR EFFECT
    ===================================================== */
 body {
