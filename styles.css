@@ -626,70 +626,145 @@ body::before {
 }
 
 /* =====================================================
-   VIDEO SECTION
+   CIRCULAR 3D CAROUSEL SECTION
    ===================================================== */
 .video-section {
-    padding: 60px 20px;
+    padding: 80px 20px;
+    overflow: hidden;
+    perspective: 2000px;
+    /* Essential for 3D depth */
 }
 
 .video-container {
-    max-width: 800px;
+    max-width: 1000px;
     margin: 0 auto;
-}
-
-.video-wrapper {
-    position: relative;
-    border-radius: 20px;
-    overflow: hidden;
-    border: 3px solid var(--gold);
-    box-shadow: 0 20px 60px rgba(255, 107, 157, 0.3);
-    background: linear-gradient(145deg, rgba(255, 107, 157, 0.1), rgba(26, 10, 16, 0.9));
-}
-
-.video-placeholder {
-    padding: 100px 40px;
-    text-align: center;
-}
-
-.play-icon {
-    width: 100px;
-    height: 100px;
-    background: var(--gradient-romantic);
-    border-radius: 50%;
+    height: 500px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 40px;
-    margin: 0 auto 30px;
-    box-shadow: 0 10px 40px rgba(255, 107, 157, 0.5);
-    animation: pulse 2s ease-in-out infinite;
+    position: relative;
+}
+
+.carousel-viewport {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform-style: preserve-3d;
+}
+
+.carousel-track {
+    width: 320px;
+    height: 480px;
+    position: absolute;
+    transform-style: preserve-3d;
+    transition: transform 1s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.video-card {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 3px solid var(--gold);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    background: #000;
+    transition: all 0.5s ease;
+    backface-visibility: hidden;
     cursor: pointer;
-    transition: transform 0.3s ease;
 }
 
-.play-icon:hover {
-    transform: scale(1.1);
+.video-card.active {
+    box-shadow: 0 0 50px var(--primary-pink), 0 0 20px var(--gold);
+    border-color: var(--primary-pink);
+    z-index: 10;
 }
 
-.video-message {
-    font-size: 1.3rem;
-    color: var(--text-light);
-    margin-bottom: 15px;
-}
-
-.countdown {
-    font-size: 1.1rem;
-    color: var(--text-muted);
-}
-
-#timer {
-    color: var(--gold);
-    font-weight: 600;
+.video-card:hover {
+    transform: scale(1.05) !important;
+    /* Keep the scale item-specific */
 }
 
 .birthday-video {
     width: 100%;
-    border-radius: 17px;
+    height: 100%;
+    object-fit: cover;
+}
+
+.video-placeholder {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(145deg, rgba(255, 107, 157, 0.2), rgba(26, 10, 16, 0.9));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px;
+    z-index: 5;
+    backface-visibility: hidden;
+    border: 3px dashed var(--gold);
+    border-radius: 20px;
+}
+
+/* Navigation Buttons */
+.carousel-control {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 60px;
+    height: 60px;
+    background: var(--gradient-romantic);
+    border: 2px solid var(--gold);
+    border-radius: 50%;
+    color: white;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 100;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(255, 107, 157, 0.4);
+}
+
+.carousel-control:hover {
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 8px 25px rgba(255, 107, 157, 0.6);
+}
+
+.carousel-control.prev {
+    left: -30px;
+}
+
+.carousel-control.next {
+    right: -30px;
+}
+
+@media (max-width: 768px) {
+    .carousel-track {
+        width: 260px;
+        height: 380px;
+    }
+
+    .carousel-control {
+        width: 45px;
+        height: 45px;
+        font-size: 18px;
+    }
+
+    .carousel-control.prev {
+        left: 10px;
+    }
+
+    .carousel-control.next {
+        right: 10px;
+    }
 }
 
 /* =====================================================

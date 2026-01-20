@@ -2,7 +2,10 @@
    ROMANTIC BIRTHDAY WEBSITE - JAVASCRIPT
    ===================================================== */
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
+    // Initialize password protection first
+    initPasswordProtection();
+
     // Initialize all animations and features
     createFloatingHearts();
     createSparkles();
@@ -12,13 +15,54 @@ document.addEventListener('DOMContentLoaded', function() {
     initScrollAnimations();
 });
 
+
+/* =====================================================
+   PASSWORD PROTECTION LOGIC
+   ===================================================== */
+function initPasswordProtection() {
+    const overlay = document.getElementById('passwordOverlay');
+    const wrapper = document.getElementById('mainContentWrapper');
+    const input = document.getElementById('passwordInput');
+    const button = document.getElementById('passwordSubmit');
+    const errorMsg = document.getElementById('passwordError');
+    const card = document.querySelector('.password-card');
+
+    const PASSWORD = 'Welcome@123';
+
+    function unlock() {
+        if (input.value === PASSWORD) {
+            overlay.style.opacity = '0';
+            wrapper.classList.remove('blurred');
+            localStorage.setItem('birthday_unlocked', 'true');
+            setTimeout(() => overlay.style.display = 'none', 600);
+        } else {
+            errorMsg.style.display = 'block';
+            card.classList.add('shake');
+            input.value = '';
+            input.focus();
+            setTimeout(() => card.classList.remove('shake'), 500);
+        }
+    }
+
+    if (localStorage.getItem('birthday_unlocked') === 'true') {
+        overlay.style.display = 'none';
+        wrapper.classList.remove('blurred');
+    }
+
+    if (button) button.addEventListener('click', unlock);
+    if (input) {
+        input.addEventListener('keypress', (e) => { if (e.key === 'Enter') unlock(); });
+        setTimeout(() => input.focus(), 500);
+    }
+}
+
 /* =====================================================
    FLOATING HEARTS ANIMATION
    ===================================================== */
 function createFloatingHearts() {
     const container = document.getElementById('heartsContainer');
     const hearts = ['❤️', '💕', '💗', '💖', '💝', '💘', '💓', '💞', '🩷', '🤍'];
-    
+
     function createHeart() {
         const heart = document.createElement('div');
         heart.className = 'floating-heart';
@@ -27,18 +71,18 @@ function createFloatingHearts() {
         heart.style.fontSize = (Math.random() * 20 + 15) + 'px';
         heart.style.animationDuration = (Math.random() * 4 + 4) + 's';
         heart.style.animationDelay = Math.random() * 2 + 's';
-        
+
         container.appendChild(heart);
-        
+
         // Remove heart after animation
         setTimeout(() => {
             heart.remove();
         }, 8000);
     }
-    
+
     // Create hearts periodically
     setInterval(createHeart, 500);
-    
+
     // Initial hearts
     for (let i = 0; i < 10; i++) {
         setTimeout(createHeart, i * 200);
@@ -50,22 +94,22 @@ function createFloatingHearts() {
    ===================================================== */
 function createSparkles() {
     const container = document.getElementById('sparklesContainer');
-    
+
     function createSparkle() {
         const sparkle = document.createElement('div');
         sparkle.className = 'sparkle';
         sparkle.style.left = Math.random() * 100 + '%';
         sparkle.style.top = Math.random() * 100 + '%';
         sparkle.style.animationDuration = (Math.random() * 2 + 1) + 's';
-        
+
         container.appendChild(sparkle);
-        
+
         // Remove sparkle after animation
         setTimeout(() => {
             sparkle.remove();
         }, 3000);
     }
-    
+
     // Create sparkles periodically
     setInterval(createSparkle, 300);
 }
@@ -76,7 +120,7 @@ function createSparkles() {
 function initConfetti() {
     const canvas = document.getElementById('confettiCanvas');
     const ctx = canvas.getContext('2d');
-    
+
     // Set canvas size
     function resizeCanvas() {
         canvas.width = window.innerWidth;
@@ -84,16 +128,16 @@ function initConfetti() {
     }
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
-    
+
     // Confetti particles
     const confetti = [];
     const colors = ['#ff6b9d', '#ffd700', '#ff8fab', '#c9184a', '#ff69b4', '#ffc2d1'];
-    
+
     class ConfettiPiece {
         constructor() {
             this.reset();
         }
-        
+
         reset() {
             this.x = Math.random() * canvas.width;
             this.y = Math.random() * canvas.height - canvas.height;
@@ -105,24 +149,24 @@ function initConfetti() {
             this.color = colors[Math.floor(Math.random() * colors.length)];
             this.shape = Math.floor(Math.random() * 3); // 0: circle, 1: rectangle, 2: star
         }
-        
+
         update() {
             this.y += this.speedY;
             this.x += this.speedX;
             this.rotation += this.rotationSpeed;
-            
+
             if (this.y > canvas.height) {
                 this.reset();
             }
         }
-        
+
         draw() {
             ctx.save();
             ctx.translate(this.x, this.y);
             ctx.rotate(this.rotation * Math.PI / 180);
             ctx.fillStyle = this.color;
             ctx.globalAlpha = 0.8;
-            
+
             if (this.shape === 0) {
                 // Circle
                 ctx.beginPath();
@@ -136,32 +180,32 @@ function initConfetti() {
                 const s = this.size / 4;
                 ctx.beginPath();
                 ctx.moveTo(0, s);
-                ctx.bezierCurveTo(s, -s, 2*s, s, 0, 2*s);
-                ctx.bezierCurveTo(-2*s, s, -s, -s, 0, s);
+                ctx.bezierCurveTo(s, -s, 2 * s, s, 0, 2 * s);
+                ctx.bezierCurveTo(-2 * s, s, -s, -s, 0, s);
                 ctx.fill();
             }
-            
+
             ctx.restore();
         }
     }
-    
+
     // Create confetti pieces
     for (let i = 0; i < 80; i++) {
         confetti.push(new ConfettiPiece());
     }
-    
+
     // Animation loop
     function animate() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
+
         confetti.forEach(piece => {
             piece.update();
             piece.draw();
         });
-        
+
         requestAnimationFrame(animate);
     }
-    
+
     animate();
 }
 
@@ -175,84 +219,160 @@ const videoSources = [];
 // Scan for videos (this would need to be populated by your actual video files)
 // For now, we'll create a placeholder system that checks for videos
 
+/* =====================================================
+   VIDEO PLAYER - 3D CIRCULAR CAROUSEL
+   ===================================================== */
+let unlockedVideos = [];
+let currentCarouselAngle = 0;
+let carouselIndex = 0;
+
 async function initVideoPlayer() {
-    const videoElement = document.getElementById('birthdayVideo');
+    const track = document.getElementById('carouselTrack');
     const placeholder = document.getElementById('videoPlaceholder');
     const timerElement = document.getElementById('timer');
-    
-    // Simulated video list - In production, you'd populate this array with your actual video files
-    // The videos should be placed in the 'videos' folder
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    // List of all videos (order maps to hour of the day)
     const availableVideos = [
         'videos/video1.mp4',
         'videos/video2.mp4',
         'videos/video3.mp4',
-        // Add more videos as needed
+        'videos/video4.mp4',
+        'videos/video5.mp4',
+        'videos/video6.mp4',
+        // Add more videos here
     ];
-    
-    let currentVideoIndex = 0;
-    let lastPlayedHour = -1;
-    
+
     function updateTimer() {
         const now = new Date();
         const nextHour = new Date(now);
         nextHour.setHours(nextHour.getHours() + 1);
         nextHour.setMinutes(0);
         nextHour.setSeconds(0);
-        
+
         const diff = nextHour - now;
         const minutes = Math.floor(diff / 60000);
         const seconds = Math.floor((diff % 60000) / 1000);
-        
-        timerElement.textContent = 
-            String(minutes).padStart(2, '0') + ':' + 
-            String(seconds).padStart(2, '0');
+
+        if (timerElement) {
+            timerElement.textContent =
+                String(minutes).padStart(2, '0') + ':' +
+                String(seconds).padStart(2, '0');
+        }
     }
-    
-    function checkAndPlayVideo() {
+
+    function checkAndUnlockVideos() {
         const currentHour = new Date().getHours();
-        
-        // Play a new video every hour
-        if (currentHour !== lastPlayedHour && availableVideos.length > 0) {
-            lastPlayedHour = currentHour;
-            currentVideoIndex = currentHour % availableVideos.length;
-            
-            // Try to load the video
-            videoElement.src = availableVideos[currentVideoIndex];
-            
-            // Show video, hide placeholder
-            videoElement.style.display = 'block';
-            placeholder.style.display = 'none';
-            
-            // Auto-play the video
-            videoElement.play().catch(err => {
-                console.log('Auto-play prevented, user interaction required');
-            });
+        const totalPossible = availableVideos.length;
+        let newlyUnlocked = false;
+
+        // In a real scenario, we unlock based on hour: i <= currentHour
+        // For testing/initial load, we find all videos that should be unlocked
+        for (let i = 0; i < totalPossible; i++) {
+            if (i <= (currentHour % 24) && !unlockedVideos.includes(availableVideos[i])) {
+                // Check if file exists before adding (optional but safe)
+                unlockedVideos.push(availableVideos[i]);
+                addVideoToCarousel(availableVideos[i], unlockedVideos.length - 1);
+                newlyUnlocked = true;
+            }
+        }
+
+        if (newlyUnlocked) {
+            updateCarouselLayout();
+            // Hide placeholder if we have videos
+            if (unlockedVideos.length > 0) {
+                placeholder.style.display = 'none';
+            }
         }
     }
-    
-    // Check if there are any videos available
-    // For demo purposes, we'll check if any video files exist
-    try {
-        const response = await fetch('videos/video1.mp4', { method: 'HEAD' });
-        if (response.ok) {
-            checkAndPlayVideo();
-        }
-    } catch (e) {
-        // No videos available yet, keep showing placeholder
-        console.log('Add videos to the videos folder for hourly playback');
+
+    function addVideoToCarousel(src, index) {
+        const card = document.createElement('div');
+        card.className = 'video-card';
+        card.innerHTML = `
+            <video class="birthday-video" loop muted playsinline>
+                <source src="${src}" type="video/mp4">
+            </video>
+        `;
+
+        // Play on click and rotate to it
+        card.addEventListener('click', () => {
+            rotateToIndex(index);
+            const video = card.querySelector('video');
+            if (video.paused) {
+                video.play().catch(e => console.log("Play failed", e));
+                card.classList.add('playing');
+            } else {
+                video.pause();
+                card.classList.remove('playing');
+            }
+        });
+
+        track.appendChild(card);
     }
-    
-    // Update every second
+
+    function updateCarouselLayout() {
+        const cards = track.querySelectorAll('.video-card');
+        const count = cards.length;
+        if (count === 0) return;
+
+        const angleStep = 360 / count;
+        // Radius calculation based on card width (320px) to prevent overlap
+        // r = (s/2) / tan(PI/n)
+        const radius = Math.max(400, (160 / Math.tan(Math.PI / count)));
+
+        cards.forEach((card, i) => {
+            const angle = i * angleStep;
+            card.style.transform = `rotateY(${angle}deg) translateZ(${radius}px)`;
+        });
+
+        // Set radius as custom property for hover reference if needed
+        track.style.setProperty('--radius', radius + 'px');
+    }
+
+    function rotateToIndex(index) {
+        const cards = track.querySelectorAll('.video-card');
+        const count = cards.length;
+        if (count === 0) return;
+
+        carouselIndex = index;
+        const angleStep = 360 / count;
+        currentCarouselAngle = -index * angleStep;
+
+        track.style.transform = `rotateY(${currentCarouselAngle}deg)`;
+
+        // Update active class
+        cards.forEach((card, i) => {
+            if (i === index) card.classList.add('active');
+            else card.classList.remove('active');
+        });
+    }
+
+    // Navigation buttons
+    prevBtn.addEventListener('click', () => {
+        if (unlockedVideos.length === 0) return;
+        carouselIndex = (carouselIndex - 1 + unlockedVideos.length) % unlockedVideos.length;
+        rotateToIndex(carouselIndex);
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (unlockedVideos.length === 0) return;
+        carouselIndex = (carouselIndex + 1) % unlockedVideos.length;
+        rotateToIndex(carouselIndex);
+    });
+
+    // Support keyboard navigation
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') prevBtn.click();
+        if (e.key === 'ArrowRight') nextBtn.click();
+    });
+
+    // Initial checks
+    checkAndUnlockVideos();
     setInterval(updateTimer, 1000);
-    
-    // Check for new video every minute
-    setInterval(checkAndPlayVideo, 60000);
-    
-    // Initial timer update
+    setInterval(checkAndUnlockVideos, 60000);
     updateTimer();
-    
-    // Allow clicking placeholder to trigger video check
-    placeholder.addEventListener('click', checkAndPlayVideo);
 }
 
 /* =====================================================
@@ -262,14 +382,14 @@ function initCountdown() {
     const hoursEl = document.getElementById('hours');
     const minutesEl = document.getElementById('minutes');
     const secondsEl = document.getElementById('seconds');
-    
+
     function updateCountdown() {
         const now = new Date();
         hoursEl.textContent = String(now.getHours()).padStart(2, '0');
         minutesEl.textContent = String(now.getMinutes()).padStart(2, '0');
         secondsEl.textContent = String(now.getSeconds()).padStart(2, '0');
     }
-    
+
     // Update every second
     setInterval(updateCountdown, 1000);
     updateCountdown();
@@ -283,12 +403,12 @@ function initScrollAnimations() {
         threshold: 0.1,
         rootMargin: '0px 0px -50px 0px'
     };
-    
+
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('visible');
-                
+
                 // Trigger special effects for certain sections
                 if (entry.target.classList.contains('message-card')) {
                     triggerHeartBurst(entry.target);
@@ -296,7 +416,7 @@ function initScrollAnimations() {
             }
         });
     }, observerOptions);
-    
+
     // Observe elements
     document.querySelectorAll('.animate-slide-in, .animate-scale-in, .animate-slide-up, .message-card').forEach(el => {
         observer.observe(el);
@@ -310,9 +430,9 @@ function triggerHeartBurst(element) {
     const rect = element.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
-    
+
     const hearts = ['❤️', '💕', '💗', '💖', '💝'];
-    
+
     for (let i = 0; i < 15; i++) {
         setTimeout(() => {
             const heart = document.createElement('div');
@@ -328,9 +448,9 @@ function triggerHeartBurst(element) {
                 --tx: ${(Math.random() - 0.5) * 200}px;
                 --ty: ${(Math.random() - 0.5) * 200}px;
             `;
-            
+
             document.body.appendChild(heart);
-            
+
             setTimeout(() => heart.remove(), 1500);
         }, i * 50);
     }
@@ -370,7 +490,7 @@ document.addEventListener('mousemove', (e) => {
             animation: trailFade 1s ease-out forwards;
         `;
         document.body.appendChild(trail);
-        
+
         setTimeout(() => trail.remove(), 1000);
     }
 });
@@ -397,7 +517,7 @@ document.head.appendChild(trailStyle);
 function typeMessage(element, text, speed = 50) {
     element.innerHTML = '';
     let i = 0;
-    
+
     function type() {
         if (i < text.length) {
             element.innerHTML += text.charAt(i);
@@ -405,7 +525,7 @@ function typeMessage(element, text, speed = 50) {
             setTimeout(type, speed);
         }
     }
-    
+
     type();
 }
 
@@ -433,7 +553,7 @@ let clickCount = 0;
 
 document.querySelector('.birthday-badge')?.addEventListener('click', () => {
     clickCount++;
-    
+
     if (clickCount >= 5) {
         // Trigger super confetti burst!
         triggerSuperConfetti();
@@ -443,7 +563,7 @@ document.querySelector('.birthday-badge')?.addEventListener('click', () => {
 
 function triggerSuperConfetti() {
     const colors = ['#ff6b9d', '#ffd700', '#ff8fab', '#c9184a', '#ff69b4'];
-    
+
     for (let i = 0; i < 100; i++) {
         setTimeout(() => {
             const confetti = document.createElement('div');
@@ -460,7 +580,7 @@ function triggerSuperConfetti() {
                 --ty: ${Math.random() * window.innerHeight}px;
             `;
             document.body.appendChild(confetti);
-            
+
             setTimeout(() => confetti.remove(), 2000);
         }, i * 20);
     }

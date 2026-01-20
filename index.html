@@ -18,118 +18,140 @@
     <!-- Sparkle Effects -->
     <div class="sparkles-container" id="sparklesContainer"></div>
 
-    <!-- Main Content -->
-    <div class="main-container">
-        <!-- Header Section with Animation -->
-        <header class="header">
-            <div class="birthday-badge animate-bounce">
-                <span class="badge-text">🎂</span>
+    <!-- Password Protection Overlay -->
+    <div id="passwordOverlay" class="password-overlay">
+        <div class="password-card animate-scale-in">
+            <div class="password-icon">🔒</div>
+            <h2 class="password-title">Private Access</h2>
+            <p class="password-subtitle">Please enter the secret password to continue</p>
+            <div class="input-group">
+                <input type="password" id="passwordInput" placeholder="Enter Password..." autocomplete="off">
+                <button id="passwordSubmit" class="password-btn">Unlock ❤️</button>
             </div>
-            <h1 class="title animate-glow">
-                Happy Birthday
-                <span class="heart-inline">💕</span>
-            </h1>
-            <p class="subtitle animate-fade-in">To the most beautiful soul in my life</p>
-
-            <!-- Animated Icon Decoration -->
-            <div class="icon-decoration">
-                <img src="images/WhatsApp Image 2026-01-19 at 17.27.49.jpeg" alt="cute expressions"
-                    class="sticker-icon sticker-left animate-float">
-                <img src="images/WhatsApp Image 2026-01-19 at 17.27.52.jpeg" alt="cute expressions"
-                    class="sticker-icon sticker-right animate-float-delayed">
-            </div>
-        </header>
-
-        <!-- Video Section -->
-        <section class="video-section" id="videoSection">
-            <h2 class="section-title animate-slide-in">Our Special Moments 📹</h2>
-            <div class="video-container">
-                <div class="video-wrapper" id="videoWrapper">
-                    <div class="video-placeholder" id="videoPlaceholder">
-                        <div class="play-icon">▶</div>
-                        <p class="video-message">A new video appears every hour!</p>
-                        <p class="countdown" id="countdown">Next video in: <span id="timer">--:--</span></p>
-                    </div>
-                    <video id="birthdayVideo" class="birthday-video" controls style="display: none;">
-                        <source src="" type="video/mp4">
-                    </video>
-                </div>
-            </div>
-        </section>
-
-        <!-- Photo Gallery Section -->
-        <section class="gallery-section">
-            <h2 class="section-title animate-slide-in">My Beautiful Queen 👑</h2>
-            <div class="photo-collage">
-                <div class="photo-frame photo-main animate-scale-in">
-                    <img src="images/WhatsApp Image 2026-01-19 at 17.27.24.jpeg" alt="My love" class="photo">
-                    <div class="photo-glow"></div>
-                </div>
-                <div class="photo-frame photo-secondary animate-scale-in-delayed">
-                    <img src="images/WhatsApp Image 2026-01-19 at 17.27.27.jpeg" alt="My love illustrated"
-                        class="photo">
-                    <div class="photo-glow"></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Love Message Section -->
-        <section class="message-section">
-            <div class="message-card animate-slide-up">
-                <div class="message-icon">💝</div>
-                <h3 class="message-title">A Special Message For You</h3>
-                <p class="message-text">
-                    Every moment with you feels like a beautiful dream.
-                    Your smile lights up my world, and your love makes every day worth living.
-                    On this special day, I want you to know how incredibly blessed I am to have you in my life.
-                </p>
-                <p class="message-signature">Forever Yours ❤️</p>
-            </div>
-        </section>
-
-        <!-- Countdown to Birthday / Celebration -->
-        <section class="countdown-section">
-            <div class="countdown-card animate-pulse-glow">
-                <h3 class="countdown-title">🎉 Celebration Time! 🎉</h3>
-                <div class="countdown-display">
-                    <div class="time-unit">
-                        <span class="time-value" id="hours">00</span>
-                        <span class="time-label">Hours</span>
-                    </div>
-                    <div class="time-separator">:</div>
-                    <div class="time-unit">
-                        <span class="time-value" id="minutes">00</span>
-                        <span class="time-label">Minutes</span>
-                    </div>
-                    <div class="time-separator">:</div>
-                    <div class="time-unit">
-                        <span class="time-value" id="seconds">00</span>
-                        <span class="time-label">Seconds</span>
-                    </div>
-                </div>
-                <p class="countdown-subtitle">of celebrating YOU!</p>
-            </div>
-        </section>
-
-        <!-- Floating Stickers Section -->
-        <div class="floating-stickers">
-            <div class="floating-sticker sticker-1">🌹</div>
-            <div class="floating-sticker sticker-2">💐</div>
-            <div class="floating-sticker sticker-3">🎁</div>
-            <div class="floating-sticker sticker-4">🎈</div>
-            <div class="floating-sticker sticker-5">✨</div>
-            <div class="floating-sticker sticker-6">💖</div>
+            <p id="passwordError" class="password-error" style="display: none;">Incorrect password, my love. Try again!
+                💝</p>
         </div>
+    </div>
 
-        <!-- Footer -->
-        <footer class="footer">
-            <p class="footer-text">Made with all my love 💕</p>
-            <div class="footer-hearts">
-                <span class="footer-heart">❤️</span>
-                <span class="footer-heart">💕</span>
-                <span class="footer-heart">💗</span>
+    <!-- Main Content Wrapped for Blurring -->
+    <div class="main-content-wrapper blurred" id="mainContentWrapper">
+        <!-- Main Content -->
+        <div class="main-container">
+            <!-- Header Section with Animation -->
+            <header class="header">
+                <div class="birthday-badge animate-bounce">
+                    <span class="badge-text">🎂</span>
+                </div>
+                <h1 class="title animate-glow">
+                    Happy Birthday
+                    <span class="heart-inline">💕</span>
+                </h1>
+                <p class="subtitle animate-fade-in">To the most beautiful soul in my life</p>
+
+                <!-- Animated Icon Decoration -->
+                <div class="icon-decoration">
+                    <img src="images/WhatsApp Image 2026-01-19 at 17.27.49.jpeg" alt="cute expressions"
+                        class="sticker-icon sticker-left animate-float">
+                    <img src="images/WhatsApp Image 2026-01-19 at 17.27.52.jpeg" alt="cute expressions"
+                        class="sticker-icon sticker-right animate-float-delayed">
+                </div>
+            </header>
+
+            <!-- Video Section -->
+            <section class="video-section" id="videoSection">
+                <h2 class="section-title animate-slide-in">Our Special Moments 📹</h2>
+                <div class="video-container">
+                    <div class="carousel-viewport" id="carouselViewport">
+                        <div class="carousel-track" id="carouselTrack">
+                            <!-- Video cards will be dynamically added here -->
+                            <div class="video-placeholder" id="videoPlaceholder">
+                                <div class="play-icon">▶</div>
+                                <p class="video-message">A new video appears every hour!</p>
+                                <p class="countdown" id="countdown">Next video in: <span id="timer">--:--</span></p>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Controls -->
+                        <button class="carousel-control prev" id="prevBtn" aria-label="Previous video">❮</button>
+                        <button class="carousel-control next" id="nextBtn" aria-label="Next video">❯</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Photo Gallery Section -->
+            <section class="gallery-section">
+                <h2 class="section-title animate-slide-in">My Beautiful Queen 👑</h2>
+                <div class="photo-collage">
+                    <div class="photo-frame photo-main animate-scale-in">
+                        <img src="images/WhatsApp Image 2026-01-19 at 17.27.24.jpeg" alt="My love" class="photo">
+                        <div class="photo-glow"></div>
+                    </div>
+                    <div class="photo-frame photo-secondary animate-scale-in-delayed">
+                        <img src="images/WhatsApp Image 2026-01-19 at 17.27.27.jpeg" alt="My love illustrated"
+                            class="photo">
+                        <div class="photo-glow"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Love Message Section -->
+            <section class="message-section">
+                <div class="message-card animate-slide-up">
+                    <div class="message-icon">💝</div>
+                    <h3 class="message-title">A Special Message For You</h3>
+                    <p class="message-text">
+                        Every moment with you feels like a beautiful dream.
+                        Your smile lights up my world, and your love makes every day worth living.
+                        On this special day, I want you to know how incredibly blessed I am to have you in my life.
+                    </p>
+                    <p class="message-signature">Forever Yours ❤️</p>
+                </div>
+            </section>
+
+            <!-- Countdown to Birthday / Celebration -->
+            <section class="countdown-section">
+                <div class="countdown-card animate-pulse-glow">
+                    <h3 class="countdown-title">🎉 Celebration Time! 🎉</h3>
+                    <div class="countdown-display">
+                        <div class="time-unit">
+                            <span class="time-value" id="hours">00</span>
+                            <span class="time-label">Hours</span>
+                        </div>
+                        <div class="time-separator">:</div>
+                        <div class="time-unit">
+                            <span class="time-value" id="minutes">00</span>
+                            <span class="time-label">Minutes</span>
+                        </div>
+                        <div class="time-separator">:</div>
+                        <div class="time-unit">
+                            <span class="time-value" id="seconds">00</span>
+                            <span class="time-label">Seconds</span>
+                        </div>
+                    </div>
+                    <p class="countdown-subtitle">of celebrating YOU!</p>
+                </div>
+            </section>
+
+            <!-- Floating Stickers Section -->
+            <div class="floating-stickers">
+                <div class="floating-sticker sticker-1">🌹</div>
+                <div class="floating-sticker sticker-2">💐</div>
+                <div class="floating-sticker sticker-3">🎁</div>
+                <div class="floating-sticker sticker-4">🎈</div>
+                <div class="floating-sticker sticker-5">✨</div>
+                <div class="floating-sticker sticker-6">💖</div>
             </div>
-        </footer>
+
+            <!-- Footer -->
+            <footer class="footer">
+                <p class="footer-text">Made with all my love 💕</p>
+                <div class="footer-hearts">
+                    <span class="footer-heart">❤️</span>
+                    <span class="footer-heart">💕</span>
+                    <span class="footer-heart">💗</span>
+                </div>
+            </footer>
+        </div>
     </div>
 
     <!-- Confetti Canvas -->
