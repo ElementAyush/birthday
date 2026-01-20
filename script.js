@@ -226,6 +226,11 @@ let unlockedVideos = [];
 let currentCarouselAngle = 0;
 let carouselIndex = 0;
 
+// Birthday start time - videos unlock from this point
+// Set to January 20, 2026 at midnight (adjust as needed)
+const BIRTHDAY_START = new Date('2026-01-20T00:00:00');
+const UNLOCK_INTERVAL_HOURS = 2; // Unlock 1 video every 2 hours
+
 async function initVideoPlayer() {
     const track = document.getElementById('carouselTrack');
     const placeholder = document.getElementById('videoPlaceholder');
@@ -233,57 +238,115 @@ async function initVideoPlayer() {
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
 
-    // List of all videos (order maps to hour of the day)
-    const availableVideos = [
-        'videos/video1.mp4',
-        'videos/video2.mp4',
-        'videos/video3.mp4',
-        'videos/video4.mp4',
-        'videos/video5.mp4',
-        'videos/video6.mp4',
-        // Add more videos here
+    // List of all 12 videos
+    const allVideos = [
+        'videos/1.mp4',
+        'videos/2.mp4',
+        'videos/3.mp4',
+        'videos/4.mp4',
+        'videos/5.mp4',
+        'videos/6.mp4',
+        'videos/7.mp4',
+        'videos/8.mp4',
+        'videos/9.mp4',
+        'videos/10.mp4',
+        'videos/11.mp4',
+        'videos/12.mp4'
     ];
 
-    function updateTimer() {
+    function getUnlockedVideoCount() {
         const now = new Date();
-        const nextHour = new Date(now);
-        nextHour.setHours(nextHour.getHours() + 1);
-        nextHour.setMinutes(0);
-        nextHour.setSeconds(0);
+        const hoursSinceStart = (now - BIRTHDAY_START) / (1000 * 60 * 60);
 
-        const diff = nextHour - now;
-        const minutes = Math.floor(diff / 60000);
+        // If before birthday, no videos unlocked
+        if (hoursSinceStart < 0) return 0;
+
+        // Calculate how many videos should be unlocked
+        // First video unlocks at hour 0, then one more every 2 hours
+        const count = Math.floor(hoursSinceStart / UNLOCK_INTERVAL_HOURS) + 1;
+
+        // Cap at total available videos
+        return Math.min(count, allVideos.length);
+    }
+
+    function getNextUnlockTime() {
+        const now = new Date();
+        const unlockedCount = getUnlockedVideoCount();
+
+        // If all videos are unlocked, return null
+        if (unlockedCount >= allVideos.length) return null;
+
+        // Calculate when the next video unlocks
+        const nextUnlockHours = unlockedCount * UNLOCK_INTERVAL_HOURS;
+        const nextUnlockTime = new Date(BIRTHDAY_START.getTime() + (nextUnlockHours * 60 * 60 * 1000));
+
+        return nextUnlockTime;
+    }
+
+    function updateTimer() {
+        const nextUnlock = getNextUnlockTime();
+
+        if (!nextUnlock) {
+            // All videos unlocked
+            if (timerElement) {
+                timerElement.textContent = '🎉 All Unlocked!';
+            }
+            return;
+        }
+
+        const now = new Date();
+        const diff = nextUnlock - now;
+
+        if (diff <= 0) {
+            // Time to unlock a new video!
+            checkAndUnlockVideos();
+            return;
+        }
+
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / 60000);
         const seconds = Math.floor((diff % 60000) / 1000);
 
         if (timerElement) {
-            timerElement.textContent =
-                String(minutes).padStart(2, '0') + ':' +
-                String(seconds).padStart(2, '0');
+            if (hours > 0) {
+                timerElement.textContent =
+                    String(hours).padStart(2, '0') + ':' +
+                    String(minutes).padStart(2, '0') + ':' +
+                    String(seconds).padStart(2, '0');
+            } else {
+                timerElement.textContent =
+                    String(minutes).padStart(2, '0') + ':' +
+                    String(seconds).padStart(2, '0');
+            }
         }
     }
 
     function checkAndUnlockVideos() {
-        const currentHour = new Date().getHours();
-        const totalPossible = availableVideos.length;
+        const shouldBeUnlocked = getUnlockedVideoCount();
         let newlyUnlocked = false;
 
-        // In a real scenario, we unlock based on hour: i <= currentHour
-        // For testing/initial load, we find all videos that should be unlocked
-        for (let i = 0; i < totalPossible; i++) {
-            if (i <= (currentHour % 24) && !unlockedVideos.includes(availableVideos[i])) {
-                // Check if file exists before adding (optional but safe)
-                unlockedVideos.push(availableVideos[i]);
-                addVideoToCarousel(availableVideos[i], unlockedVideos.length - 1);
+        // Add any newly unlocked videos
+        for (let i = 0; i < shouldBeUnlocked; i++) {
+            if (!unlockedVideos.includes(allVideos[i])) {
+                unlockedVideos.push(allVideos[i]);
+                addVideoToCarousel(allVideos[i], unlockedVideos.length - 1);
                 newlyUnlocked = true;
             }
         }
 
         if (newlyUnlocked) {
             updateCarouselLayout();
-            // Hide placeholder if we have videos
-            if (unlockedVideos.length > 0) {
-                placeholder.style.display = 'none';
-            }
+        }
+
+        // Show/hide placeholder based on unlocked videos
+        if (unlockedVideos.length > 0) {
+            placeholder.style.display = 'none';
+            document.querySelector('.carousel-container').style.display = 'block';
+            document.querySelector('.carousel-nav').style.display = 'flex';
+        } else {
+            placeholder.style.display = 'block';
+            document.querySelector('.carousel-container').style.display = 'none';
+            document.querySelector('.carousel-nav').style.display = 'none';
         }
     }
 
@@ -371,7 +434,7 @@ async function initVideoPlayer() {
     // Initial checks
     checkAndUnlockVideos();
     setInterval(updateTimer, 1000);
-    setInterval(checkAndUnlockVideos, 60000);
+    setInterval(checkAndUnlockVideos, 60000); // Check every minute
     updateTimer();
 }
 
