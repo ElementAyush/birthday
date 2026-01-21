@@ -645,49 +645,209 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 500px;
+    min-height: 650px;
+    overflow: hidden;
+    padding: 20px 0;
 }
 
 .carousel-track {
+    position: absolute;
+    left: 50%;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 30px;
-    transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-    padding: 20px 0;
+    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    padding: 40px 60px;
+    will-change: transform;
 }
 
 .video-card {
     flex-shrink: 0;
-    width: 280px;
-    height: 420px;
-    border-radius: 20px;
+    width: 180px;
+    height: 280px;
+    border-radius: 16px;
     overflow: hidden;
-    border: 3px solid rgba(255, 215, 0, 0.4);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    border: 2px solid rgba(255, 215, 0, 0.2);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
     background: #000;
-    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     cursor: pointer;
-    opacity: 0.5;
-    transform: scale(0.85);
-    filter: brightness(0.6);
+    opacity: 0.4;
+    transform: scale(0.75);
+    filter: brightness(0.4) blur(2px);
+    position: relative;
 }
 
+/* Adjacent to active cards */
+.video-card.adjacent {
+    opacity: 0.6;
+    transform: scale(0.85);
+    filter: brightness(0.6) blur(1px);
+}
+
+/* Video Play Button Overlay */
+.video-card .play-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease;
+    z-index: 5;
+    pointer-events: none;
+    opacity: 0;
+}
+
+.video-card .play-overlay .play-btn {
+    width: 50px;
+    height: 50px;
+    background: var(--gradient-romantic);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: white;
+    box-shadow: 0 0 20px rgba(255, 107, 157, 0.5);
+    transition: all 0.3s ease;
+}
+
+.video-card .play-overlay .play-btn::before {
+    content: '▶';
+    margin-left: 4px;
+}
+
+/* Active card - CENTER, BIGGER, with prominent play button */
 .video-card.active {
-    width: 360px;
-    height: 540px;
+    width: 380px;
+    height: 570px;
     opacity: 1;
     transform: scale(1);
-    filter: brightness(1);
+    filter: brightness(1) blur(0);
     border: 4px solid var(--gold);
-    box-shadow: 0 0 60px rgba(255, 107, 157, 0.5), 0 0 30px rgba(255, 215, 0, 0.3), 0 20px 60px rgba(0, 0, 0, 0.6);
+    box-shadow:
+        0 0 60px rgba(255, 107, 157, 0.7),
+        0 0 100px rgba(255, 215, 0, 0.4),
+        0 25px 60px rgba(0, 0, 0, 0.6),
+        inset 0 0 0 2px rgba(255, 255, 255, 0.1);
+    z-index: 20;
+}
+
+.video-card.active .play-overlay {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.25);
+}
+
+.video-card.active .play-overlay .play-btn {
+    width: 90px;
+    height: 90px;
+    font-size: 36px;
+    box-shadow: 0 0 40px rgba(255, 107, 157, 0.9), 0 0 80px rgba(255, 107, 157, 0.5);
+    animation: pulsePlayBtn 2s ease-in-out infinite;
+}
+
+@keyframes pulsePlayBtn {
+
+    0%,
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 40px rgba(255, 107, 157, 0.9), 0 0 80px rgba(255, 107, 157, 0.5);
+    }
+
+    50% {
+        transform: scale(1.1);
+        box-shadow: 0 0 60px rgba(255, 107, 157, 1), 0 0 100px rgba(255, 107, 157, 0.7);
+    }
+}
+
+.video-card.active:hover .play-overlay .play-btn {
+    transform: scale(1.15);
+}
+
+/* Hide play button when video is playing */
+.video-card.playing .play-overlay {
+    opacity: 0;
+}
+
+/* Fullscreen Button */
+.fullscreen-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 35px;
+    height: 35px;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 215, 0, 0.5);
+    border-radius: 8px;
+    color: var(--gold);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     z-index: 10;
+    opacity: 0;
+    transition: all 0.3s ease;
+    padding: 6px;
+}
+
+.fullscreen-btn svg {
+    width: 100%;
+    height: 100%;
+}
+
+.fullscreen-btn:hover {
+    background: rgba(255, 215, 0, 0.2);
+    border-color: var(--gold);
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+}
+
+/* Show fullscreen button on active card */
+.video-card.active .fullscreen-btn {
+    opacity: 1;
+}
+
+/* Fullscreen button for fullscreen mode */
+.video-card:fullscreen .fullscreen-btn,
+.video-card:-webkit-full-screen .fullscreen-btn,
+.video-card:-moz-full-screen .fullscreen-btn,
+.video-card:-ms-fullscreen .fullscreen-btn {
+    width: 45px;
+    height: 45px;
+}
+
+/* Fullscreen video styling */
+.video-card:fullscreen,
+.video-card:-webkit-full-screen,
+.video-card:-moz-full-screen,
+.video-card:-ms-fullscreen {
+    width: 100vw !important;
+    height: 100vh !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+}
+
+.video-card:fullscreen .birthday-video,
+.video-card:-webkit-full-screen .birthday-video,
+.video-card:-moz-full-screen .birthday-video,
+.video-card:-ms-fullscreen .birthday-video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 .video-card:hover:not(.active) {
-    opacity: 0.8;
+    opacity: 0.7;
     transform: scale(0.9);
-    filter: brightness(0.8);
+    filter: brightness(0.55) blur(0.5px);
 }
 
 .birthday-video {
@@ -769,41 +929,52 @@ body::before {
 
 @media (max-width: 768px) {
     .carousel-viewport {
-        min-height: 400px;
+        min-height: 480px;
     }
 
     .video-card {
-        width: 200px;
-        height: 300px;
+        width: 120px;
+        height: 180px;
     }
 
     .video-card.active {
-        width: 280px;
-        height: 420px;
+        width: 260px;
+        height: 390px;
+    }
+
+    .video-card.adjacent {
+        transform: scale(0.8);
+    }
+
+    .video-card.active .play-overlay .play-btn {
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
     }
 
     .video-placeholder {
-        width: 280px;
-        height: 420px;
+        width: 260px;
+        height: 390px;
         padding: 20px;
     }
 
     .carousel-control {
-        width: 45px;
-        height: 45px;
-        font-size: 18px;
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
     }
 
     .carousel-control.prev {
-        left: 10px;
+        left: 5px;
     }
 
     .carousel-control.next {
-        right: 10px;
+        right: 5px;
     }
 
     .carousel-track {
         gap: 15px;
+        padding: 30px 40px;
     }
 }
 

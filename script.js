@@ -31,6 +31,7 @@ function initPasswordProtection() {
 
     function unlock() {
         if (input.value === PASSWORD) {
+            overlay.style.pointerEvents = 'none'; // Immediately stop capturing clicks
             overlay.style.opacity = '0';
             wrapper.classList.remove('blurred');
             localStorage.setItem('birthday_unlocked', 'true');
@@ -360,10 +361,21 @@ async function initVideoPlayer() {
             <video class="birthday-video" loop muted playsinline preload="metadata">
                 <source src="${src}" type="video/mp4">
             </video>
+            <div class="play-overlay">
+                <div class="play-btn"></div>
+            </div>
+            <button class="fullscreen-btn" aria-label="Fullscreen">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                </svg>
+            </button>
         `;
 
         // Click to select and play/pause
-        card.addEventListener('click', () => {
+        card.addEventListener('click', (e) => {
+            // Don't trigger if clicking the fullscreen button
+            if (e.target.closest('.fullscreen-btn')) return;
+
             if (carouselIndex !== index) {
                 // Navigate to this video
                 navigateToIndex(index);
@@ -381,7 +393,46 @@ async function initVideoPlayer() {
             }
         });
 
+        // Fullscreen button functionality
+        const fullscreenBtn = card.querySelector('.fullscreen-btn');
+        fullscreenBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleFullscreen(card);
+        });
+
         track.appendChild(card);
+    }
+
+    // Fullscreen toggle function
+    function toggleFullscreen(card) {
+        const video = card.querySelector('video');
+
+        if (!document.fullscreenElement) {
+            // Enter fullscreen
+            if (card.requestFullscreen) {
+                card.requestFullscreen();
+            } else if (card.webkitRequestFullscreen) {
+                card.webkitRequestFullscreen();
+            } else if (card.msRequestFullscreen) {
+                card.msRequestFullscreen();
+            }
+
+            // Play video when entering fullscreen
+            if (video.paused) {
+                video.muted = false;
+                video.play().catch(e => console.log("Play failed", e));
+                card.classList.add('playing');
+            }
+        } else {
+            // Exit fullscreen
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+        }
     }
 
     function updateCarouselLayout() {
@@ -397,48 +448,98 @@ async function initVideoPlayer() {
         const count = cards.length;
         if (count === 0) return;
 
-        carouselIndex = index;
+        // Clamp index to valid range
+        carouselIndex = Math.max(0, Math.min(index, count - 1));
 
         // Update active class and pause all non-active videos
         cards.forEach((card, i) => {
             const video = card.querySelector('video');
-            if (i === index) {
+
+            // Remove all state classes
+            card.classList.remove('active', 'adjacent', 'playing');
+
+            if (i === carouselIndex) {
                 card.classList.add('active');
-                // Don't auto-play, let user click to play
-            } else {
-                card.classList.remove('active');
-                card.classList.remove('playing');
-                // Pause and mute non-active videos
-                if (video) {
-                    video.pause();
-                    video.muted = true;
-                    video.currentTime = 0;
-                }
+            } else if (Math.abs(i - carouselIndex) === 1) {
+                // Adjacent cards (immediately before/after active)
+                card.classList.add('adjacent');
+            }
+
+            // Pause and reset non-active videos
+            if (i !== carouselIndex && video) {
+                video.pause();
+                video.muted = true;
+                video.currentTime = 0;
             }
         });
 
-        // Scroll the active card into center view
-        const activeCard = cards[index];
-        if (activeCard) {
-            activeCard.scrollIntoView({
-                behavior: 'smooth',
-                block: 'nearest',
-                inline: 'center'
-            });
+        // Calculate offset to center the active card
+        // Track is at left: 50%, so we translate left by the distance
+        // from track start to the center of the active card
+        const isMobile = window.innerWidth <= 768;
+        const inactiveWidth = isMobile ? 120 : 180;
+        const activeWidth = isMobile ? 260 : 380;
+        const gap = isMobile ? 15 : 30;
+        const trackPadding = isMobile ? 40 : 60;
+
+        // Distance from left edge of track to center of active card
+        let distanceToActiveCenter = trackPadding;
+        for (let i = 0; i < carouselIndex; i++) {
+            distanceToActiveCenter += inactiveWidth + gap;
+        }
+        distanceToActiveCenter += activeWidth / 2;
+
+        // Since track is at left:50%, translate left by this distance
+        track.style.transform = `translateX(-${distanceToActiveCenter}px)`;
+
+        // Update button states
+        updateButtonStates();
+    }
+
+    function updateButtonStates() {
+        // Disable prev button at start
+        if (carouselIndex === 0) {
+            prevBtn.style.opacity = '0.3';
+            prevBtn.style.cursor = 'not-allowed';
+        } else {
+            prevBtn.style.opacity = '1';
+            prevBtn.style.cursor = 'pointer';
+        }
+
+        // Disable next button at end
+        if (carouselIndex === unlockedVideos.length - 1) {
+            nextBtn.style.opacity = '0.3';
+            nextBtn.style.cursor = 'not-allowed';
+        } else {
+            nextBtn.style.opacity = '1';
+            nextBtn.style.cursor = 'pointer';
         }
     }
+
+    // Recalculate on window resize
+    window.addEventListener('resize', () => {
+        if (unlockedVideos.length > 0) {
+            navigateToIndex(carouselIndex);
+        }
+    });
 
     // Navigation buttons
     prevBtn.addEventListener('click', () => {
         if (unlockedVideos.length === 0) return;
-        carouselIndex = (carouselIndex - 1 + unlockedVideos.length) % unlockedVideos.length;
-        navigateToIndex(carouselIndex);
+        const newIndex = carouselIndex - 1;
+        if (newIndex >= 0) {
+            carouselIndex = newIndex;
+            navigateToIndex(carouselIndex);
+        }
     });
 
     nextBtn.addEventListener('click', () => {
         if (unlockedVideos.length === 0) return;
-        carouselIndex = (carouselIndex + 1) % unlockedVideos.length;
-        navigateToIndex(carouselIndex);
+        const newIndex = carouselIndex + 1;
+        if (newIndex < unlockedVideos.length) {
+            carouselIndex = newIndex;
+            navigateToIndex(carouselIndex);
+        }
     });
 
     // Support keyboard navigation
