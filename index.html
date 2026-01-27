@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Happy Birthday My Love 💕</title>
-    <link rel="stylesheet" href="styles.css?v=5">
+    <title>Happy Birthday 💕</title>
+    <link rel="stylesheet" href="styles.css?v=11">
     <link
         href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Poppins:wght@300;400;600&display=swap"
         rel="stylesheet">
@@ -66,7 +66,7 @@
                             <!-- Video cards will be dynamically added here -->
                             <div class="video-placeholder" id="videoPlaceholder">
                                 <div class="play-icon">▶</div>
-                                <p class="video-message">A new video appears every hour!</p>
+                                <p class="video-message">A new video appears every 2 hours!</p>
                                 <p class="countdown" id="countdown">Next video in: <span id="timer">--:--</span></p>
                             </div>
                         </div>
@@ -75,12 +75,40 @@
                         <button class="carousel-control prev" id="prevBtn" aria-label="Previous video">❮</button>
                         <button class="carousel-control next" id="nextBtn" aria-label="Next video">❯</button>
                     </div>
+
+                    <!-- Video Unlock Timer (always visible) -->
+                    <div class="video-unlock-timer" id="videoUnlockTimer">
+                        <span class="unlock-label">🎬 Next video unlocks in:</span>
+                        <span class="unlock-countdown" id="unlockCountdown">--:--</span>
+                        <span class="unlock-info">(<span id="unlockedCount">0</span>/12 unlocked)</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reels Section -->
+            <section class="reels-section" id="reelsSection">
+                <h2 class="section-title animate-slide-in">Reels I Saved For You 📱</h2>
+                <div class="reels-container">
+                    <div class="reels-carousel-viewport" id="reelsCarouselViewport">
+                        <div class="reels-carousel-track" id="reelsCarouselTrack">
+                            <!-- Reel cards will be dynamically added here -->
+                        </div>
+
+                        <!-- Navigation Controls -->
+                        <button class="carousel-control prev" id="reelsPrevBtn" aria-label="Previous reel">❮</button>
+                        <button class="carousel-control next" id="reelsNextBtn" aria-label="Next reel">❯</button>
+                    </div>
+
+                    <!-- Reel Counter -->
+                    <div class="reel-counter">
+                        <span id="currentReelNumber">1</span> / <span id="totalReelCount">510</span>
+                    </div>
                 </div>
             </section>
 
             <!-- Photo Gallery Section -->
             <section class="gallery-section">
-                <h2 class="section-title animate-slide-in">My Beautiful Queen 👑</h2>
+                <h2 class="section-title animate-slide-in">Beautiful Queen 👑</h2>
                 <div class="photo-collage">
                     <div class="photo-frame photo-main animate-scale-in">
                         <img src="images/WhatsApp Image 2026-01-19 at 17.27.24.jpeg" alt="My love" class="photo">
@@ -157,7 +185,7 @@
     <!-- Confetti Canvas -->
     <canvas id="confettiCanvas"></canvas>
 
-    <script src="script.js?v=5"></script>
+    <script src="script.js?v=18"></script>
 </body>
 
 </html>

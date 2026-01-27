@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Unlock Logic Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a0a10;
+            color: #fff;
+        }
+
+        h1 {
+            color: #ffd700;
+        }
+
+        .test-results {
+            background: rgba(255, 107, 157, 0.1);
+            border: 2px solid #ff6b9d;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .time-slot {
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            border-left: 4px solid #ffd700;
+        }
+
+        .current-time {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 2px solid #ffd700;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 3px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .unlocked {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .locked {
+            background: #f44336;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🎂 Video Unlock Logic Test</h1>
+
+    <div class="current-time">
+        <h3>Current Status:</h3>
+        <p><strong>Current Time:</strong> <span id="currentTime"></span></p>
+        <p><strong>Birthday Start:</strong> <span id="birthdayStart"></span></p>
+        <p><strong>Hours Since Start:</strong> <span id="hoursSince"></span></p>
+        <p><strong>Videos Unlocked:</strong> <span id="unlockedCount"></span> / 12</p>
+        <p><strong>Next Unlock:</strong> <span id="nextUnlock"></span></p>
+    </div>
+
+    <div class="test-results">
+        <h3>Expected Unlock Schedule (Jan 20, 2026):</h3>
+        <div id="schedule"></div>
+    </div>
+
+    <script>
+        const BIRTHDAY_START = new Date('2026-01-20T00:00:00');
+        const UNLOCK_INTERVAL_HOURS = 2;
+        const TOTAL_VIDEOS = 12;
+
+        function getUnlockedVideoCount(testTime) {
+            const now = testTime || new Date();
+            const hoursSinceStart = (now - BIRTHDAY_START) / (1000 * 60 * 60);
+
+            if (hoursSinceStart < 0) return 0;
+
+            const count = Math.floor(hoursSinceStart / UNLOCK_INTERVAL_HOURS) + 1;
+            return Math.min(count, TOTAL_VIDEOS);
+        }
+
+        function getNextUnlockTime(testTime) {
+            const now = testTime || new Date();
+            const unlockedCount = getUnlockedVideoCount(now);
+
+            if (unlockedCount >= TOTAL_VIDEOS) return null;
+
+            const nextUnlockHours = unlockedCount * UNLOCK_INTERVAL_HOURS;
+            const nextUnlockTime = new Date(BIRTHDAY_START.getTime() + (nextUnlockHours * 60 * 60 * 1000));
+
+            return nextUnlockTime;
+        }
+
+        function formatTime(date) {
+            return date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+        }
+
+        function updateCurrentStatus() {
+            const now = new Date();
+            const hoursSince = ((now - BIRTHDAY_START) / (1000 * 60 * 60)).toFixed(2);
+            const unlocked = getUnlockedVideoCount(now);
+            const next = getNextUnlockTime(now);
+
+            document.getElementById('currentTime').textContent = formatTime(now);
+            document.getElementById('birthdayStart').textContent = formatTime(BIRTHDAY_START);
+            document.getElementById('hoursSince').textContent = hoursSince + ' hours';
+            document.getElementById('unlockedCount').textContent = unlocked;
+            document.getElementById('nextUnlock').textContent = next ? formatTime(next) : 'All videos unlocked! 🎉';
+        }
+
+        function generateSchedule() {
+            const scheduleDiv = document.getElementById('schedule');
+            let html = '';
+
+            for (let i = 0; i < TOTAL_VIDEOS; i++) {
+                const unlockTime = new Date(BIRTHDAY_START.getTime() + (i * UNLOCK_INTERVAL_HOURS * 60 * 60 * 1000));
+                const videoNum = i + 1;
+                const hour = unlockTime.getHours();
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                const displayHour = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+
+                // Check if this video should be unlocked now
+                const now = new Date();
+                const isUnlocked = getUnlockedVideoCount(now) > i;
+                const statusClass = isUnlocked ? 'unlocked' : 'locked';
+                const statusText = isUnlocked ? '🔓 UNLOCKED' : '🔒 LOCKED';
+
+                html += `
+                    <div class="time-slot">
+                        <strong>Video ${videoNum}</strong>: 
+                        ${displayHour}:00 ${ampm} 
+                        <span class="status ${statusClass}">${statusText}</span>
+                    </div>
+                `;
+            }
+
+            scheduleDiv.innerHTML = html;
+        }
+
+        // Initialize
+        updateCurrentStatus();
+        generateSchedule();
+
+        // Update every second
+        setInterval(() => {
+            updateCurrentStatus();
+            generateSchedule();
+        }, 1000);
+    </script>
+</body>
+
+</html>

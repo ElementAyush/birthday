@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
     createSparkles();
     initConfetti();
     initVideoPlayer();
+    initReelsPlayer(); // Initialize reels carousel
     initCountdown();
     initScrollAnimations();
 });
@@ -228,8 +229,8 @@ let currentCarouselAngle = 0;
 let carouselIndex = 0;
 
 // Birthday start time - videos unlock from this point
-// Set to January 20, 2026 at midnight (adjust as needed)
-const BIRTHDAY_START = new Date('2026-01-20T00:00:00');
+// Set to January 24, 2026 at midnight IST (Indian Standard Time)
+const BIRTHDAY_START = new Date('2026-01-24T00:00:00+05:30');
 const UNLOCK_INTERVAL_HOURS = 2; // Unlock 1 video every 2 hours
 
 async function initVideoPlayer() {
@@ -238,6 +239,9 @@ async function initVideoPlayer() {
     const timerElement = document.getElementById('timer');
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
+    const unlockCountdown = document.getElementById('unlockCountdown');
+    const unlockedCountEl = document.getElementById('unlockedCount');
+    const videoUnlockTimer = document.getElementById('videoUnlockTimer');
 
     // List of all 12 videos
     const allVideos = [
@@ -286,11 +290,23 @@ async function initVideoPlayer() {
 
     function updateTimer() {
         const nextUnlock = getNextUnlockTime();
+        const currentUnlocked = getUnlockedVideoCount();
+
+        // Update unlocked count display
+        if (unlockedCountEl) {
+            unlockedCountEl.textContent = currentUnlocked;
+        }
 
         if (!nextUnlock) {
             // All videos unlocked
             if (timerElement) {
                 timerElement.textContent = '🎉 All Unlocked!';
+            }
+            if (unlockCountdown) {
+                unlockCountdown.textContent = '🎉 All Done!';
+            }
+            if (videoUnlockTimer) {
+                videoUnlockTimer.querySelector('.unlock-label').textContent = '🎉 All videos unlocked!';
             }
             return;
         }
@@ -308,17 +324,21 @@ async function initVideoPlayer() {
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / 60000);
         const seconds = Math.floor((diff % 60000) / 1000);
 
+        let timeString;
+        if (hours > 0) {
+            timeString = String(hours).padStart(2, '0') + ':' +
+                String(minutes).padStart(2, '0') + ':' +
+                String(seconds).padStart(2, '0');
+        } else {
+            timeString = String(minutes).padStart(2, '0') + ':' +
+                String(seconds).padStart(2, '0');
+        }
+
         if (timerElement) {
-            if (hours > 0) {
-                timerElement.textContent =
-                    String(hours).padStart(2, '0') + ':' +
-                    String(minutes).padStart(2, '0') + ':' +
-                    String(seconds).padStart(2, '0');
-            } else {
-                timerElement.textContent =
-                    String(minutes).padStart(2, '0') + ':' +
-                    String(seconds).padStart(2, '0');
-            }
+            timerElement.textContent = timeString;
+        }
+        if (unlockCountdown) {
+            unlockCountdown.textContent = timeString;
         }
     }
 
@@ -553,6 +573,266 @@ async function initVideoPlayer() {
     setInterval(updateTimer, 1000);
     setInterval(checkAndUnlockVideos, 60000); // Check every minute
     updateTimer();
+}
+
+/* =====================================================
+   REELS PLAYER - CAROUSEL WITH LAZY LOADING
+   ===================================================== */
+let reelCarouselIndex = 0;
+const TOTAL_REELS = 510;
+const REELS_WINDOW_SIZE = 7; // Load 7 reels at a time (3 before, current, 3 after)
+let loadedReels = new Map(); // Track which reels are loaded
+
+function initReelsPlayer() {
+    const track = document.getElementById('reelsCarouselTrack');
+    const prevBtn = document.getElementById('reelsPrevBtn');
+    const nextBtn = document.getElementById('reelsNextBtn');
+    const currentReelNumber = document.getElementById('currentReelNumber');
+    const totalReelCount = document.getElementById('totalReelCount');
+
+    if (!track || !prevBtn || !nextBtn) return;
+
+    // Set total reel count
+    if (totalReelCount) {
+        totalReelCount.textContent = TOTAL_REELS;
+    }
+
+    // Load initial reels around index 0
+    loadReelsAroundIndex(0);
+
+    // Initialize first reel as active
+    setTimeout(() => navigateToReelIndex(0), 100);
+
+    function getReelFilePath(reelNumber) {
+        return `reels/Final (${reelNumber}).mp4`;
+    }
+
+    function createReelCard(reelNumber) {
+        const card = document.createElement('div');
+        card.className = 'reel-card';
+        card.dataset.index = reelNumber - 1;
+        card.dataset.reelNumber = reelNumber;
+        card.innerHTML = `
+            <div class="reel-number-badge">${reelNumber}</div>
+            <video class="reel-video" loop muted playsinline preload="none">
+                <source src="${getReelFilePath(reelNumber)}" type="video/mp4">
+            </video>
+            <button class="fullscreen-btn" aria-label="Fullscreen">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                </svg>
+            </button>
+        `;
+
+        // Click to navigate to this reel
+        card.addEventListener('click', (e) => {
+            if (e.target.closest('.fullscreen-btn')) return;
+            const index = parseInt(card.dataset.index);
+            if (reelCarouselIndex !== index) {
+                navigateToReelIndex(index);
+            }
+        });
+
+        // Fullscreen button functionality
+        const fullscreenBtn = card.querySelector('.fullscreen-btn');
+        fullscreenBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleReelFullscreen(card);
+        });
+
+        return card;
+    }
+
+    function loadReelsAroundIndex(centerIndex) {
+        // Calculate which reels should be visible
+        const halfWindow = Math.floor(REELS_WINDOW_SIZE / 2);
+        const startIndex = Math.max(0, centerIndex - halfWindow);
+        const endIndex = Math.min(TOTAL_REELS - 1, centerIndex + halfWindow);
+
+        // Remove reels that are too far away
+        const reelsToRemove = [];
+        loadedReels.forEach((card, reelNumber) => {
+            const reelIndex = reelNumber - 1;
+            if (reelIndex < startIndex - 2 || reelIndex > endIndex + 2) {
+                reelsToRemove.push(reelNumber);
+            }
+        });
+        reelsToRemove.forEach(reelNumber => {
+            const card = loadedReels.get(reelNumber);
+            if (card && card.parentNode) {
+                card.parentNode.removeChild(card);
+            }
+            loadedReels.delete(reelNumber);
+        });
+
+        // Add new reels that need to be loaded
+        for (let i = startIndex; i <= endIndex; i++) {
+            const reelNumber = i + 1;
+            if (!loadedReels.has(reelNumber)) {
+                const card = createReelCard(reelNumber);
+                loadedReels.set(reelNumber, card);
+
+                // Insert in correct position
+                insertCardInOrder(card, reelNumber);
+            }
+        }
+    }
+
+    function insertCardInOrder(newCard, newReelNumber) {
+        const existingCards = Array.from(track.children);
+        let inserted = false;
+
+        for (const existingCard of existingCards) {
+            const existingReelNumber = parseInt(existingCard.dataset.reelNumber);
+            if (existingReelNumber > newReelNumber) {
+                track.insertBefore(newCard, existingCard);
+                inserted = true;
+                break;
+            }
+        }
+
+        if (!inserted) {
+            track.appendChild(newCard);
+        }
+    }
+
+    function toggleReelFullscreen(card) {
+        const video = card.querySelector('video');
+
+        if (!document.fullscreenElement) {
+            if (card.requestFullscreen) {
+                card.requestFullscreen();
+            } else if (card.webkitRequestFullscreen) {
+                card.webkitRequestFullscreen();
+            } else if (card.msRequestFullscreen) {
+                card.msRequestFullscreen();
+            }
+
+            if (video && video.paused) {
+                video.muted = false;
+                video.play().catch(e => console.log("Play failed", e));
+                card.classList.add('playing');
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+        }
+    }
+
+    function navigateToReelIndex(index) {
+        // Clamp index to valid range
+        reelCarouselIndex = Math.max(0, Math.min(index, TOTAL_REELS - 1));
+
+        // Load reels around the new index
+        loadReelsAroundIndex(reelCarouselIndex);
+
+        // Update current reel number display
+        if (currentReelNumber) {
+            currentReelNumber.textContent = reelCarouselIndex + 1;
+        }
+
+        // Update active class, pause non-active videos, and autoplay active reel
+        const cards = track.querySelectorAll('.reel-card');
+        cards.forEach((card) => {
+            const cardIndex = parseInt(card.dataset.index);
+            const video = card.querySelector('video');
+
+            card.classList.remove('active', 'adjacent', 'playing');
+
+            if (cardIndex === reelCarouselIndex) {
+                card.classList.add('active');
+                // Autoplay the active reel (must start muted for browser autoplay policy)
+                if (video) {
+                    video.preload = 'auto'; // Start loading the active video
+                    video.muted = true;
+                    video.play().then(() => {
+                        video.muted = false;
+                    }).catch(e => console.log("Autoplay failed", e));
+                }
+            } else if (Math.abs(cardIndex - reelCarouselIndex) === 1) {
+                card.classList.add('adjacent');
+                // Preload adjacent videos
+                if (video) {
+                    video.preload = 'metadata';
+                }
+            }
+
+            if (cardIndex !== reelCarouselIndex && video) {
+                video.pause();
+                video.muted = true;
+                video.currentTime = 0;
+            }
+        });
+
+        // Calculate offset to center the active card
+        updateCarouselPosition();
+        updateReelButtonStates();
+    }
+
+    function updateCarouselPosition() {
+        const isMobile = window.innerWidth <= 768;
+        const inactiveWidth = isMobile ? 120 : 180;
+        const activeWidth = isMobile ? 260 : 380;
+        const gap = isMobile ? 15 : 30;
+        const trackPadding = isMobile ? 40 : 60;
+
+        // Find the position of the active card within loaded cards
+        const cards = Array.from(track.querySelectorAll('.reel-card'));
+        let distanceToActiveCenter = trackPadding;
+
+        for (const card of cards) {
+            const cardIndex = parseInt(card.dataset.index);
+            if (cardIndex < reelCarouselIndex) {
+                distanceToActiveCenter += inactiveWidth + gap;
+            } else if (cardIndex === reelCarouselIndex) {
+                distanceToActiveCenter += activeWidth / 2;
+                break;
+            }
+        }
+
+        track.style.transform = `translateX(-${distanceToActiveCenter}px)`;
+    }
+
+    function updateReelButtonStates() {
+        if (reelCarouselIndex === 0) {
+            prevBtn.style.opacity = '0.3';
+            prevBtn.style.cursor = 'not-allowed';
+        } else {
+            prevBtn.style.opacity = '1';
+            prevBtn.style.cursor = 'pointer';
+        }
+
+        if (reelCarouselIndex === TOTAL_REELS - 1) {
+            nextBtn.style.opacity = '0.3';
+            nextBtn.style.cursor = 'not-allowed';
+        } else {
+            nextBtn.style.opacity = '1';
+            nextBtn.style.cursor = 'pointer';
+        }
+    }
+
+    // Recalculate on window resize
+    window.addEventListener('resize', () => {
+        updateCarouselPosition();
+    });
+
+    // Navigation buttons
+    prevBtn.addEventListener('click', () => {
+        if (reelCarouselIndex > 0) {
+            navigateToReelIndex(reelCarouselIndex - 1);
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (reelCarouselIndex < TOTAL_REELS - 1) {
+            navigateToReelIndex(reelCarouselIndex + 1);
+        }
+    });
 }
 
 /* =====================================================
